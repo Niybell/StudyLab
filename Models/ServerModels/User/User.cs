@@ -11,8 +11,8 @@ namespace StudyLab.Models.ServerModels.User
     {
         public string? AvatarURL { get; set; }
         public Role Role { get; set; } = Role.User;
-        public List<Course> Courses { get; set; } = new List<Course>();
-        public List<Course> WantToTake { get; set; } = new List<Course>();
-        public List<Course> InLearning { get; set; } = new List<Course>();
+        public List<CourseId>? Courses { get; set; } = new List<CourseId>();
+        public List<CourseId>? WantToTake { get; set; } = new List<CourseId>();
+        public List<CourseId>? InLearning { get; set; } = new List<CourseId>();
     }
 }

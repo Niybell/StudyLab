@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using StudyLab.Models.ServerModels.Courses.Modules;
 
 namespace StudyLab.Models.ServerModels.Courses
 {
@@ -16,7 +16,7 @@ namespace StudyLab.Models.ServerModels.Courses
         {
         }
 
-        public Course(string? name, string? logoURL, Category? courseCategory, string? description, Language? language, Difficulty? difficulty, string? load, string? result, string? aboutCourse, string? targetAudience, string? initialRequirements, string? howTrainingWorks, List<User.User>? teachers)
+        public Course(string? name, string? logoURL, Category? courseCategory, string? description, Language? language, Difficulty? difficulty, string? load, string? result, string? aboutCourse, string? targetAudience, string? initialRequirements, string? howTrainingWorks)
         {
             Name = name;
             LogoURL = logoURL;
@@ -30,7 +30,6 @@ namespace StudyLab.Models.ServerModels.Courses
             TargetAudience = targetAudience;
             InitialRequirements = initialRequirements;
             HowTrainingWorks = howTrainingWorks;
-            Teachers = teachers;
         }
 
         public int Id { get; set; }
@@ -46,7 +45,7 @@ namespace StudyLab.Models.ServerModels.Courses
         public string? TargetAudience { get; set; }
         public string? InitialRequirements { get; set; }
         public string? HowTrainingWorks { get; set; }
-        public List<User.User>? Teachers { get; set; }
+        public List<CourseTeacher>? Teachers { get; set; }
         public List<Module> Modules { get; set; } = new List<Module>();
     }
 }

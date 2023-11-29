@@ -1,8 +1,16 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using StudyLab.Models.EntityFramework.Contexts;
+using StudyLab.Models.ServerModels.User;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSwaggerGen();   
+builder.Services.AddDbContext<AuthDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnectionString")));
+builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AuthDBContext>();
 
 var app = builder.Build();
 
@@ -16,6 +24,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseAuthentication();
+app.UseAuthorization();
 
 
 app.MapControllerRoute(
