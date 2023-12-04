@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudyLab.Models.FrontendModels.ArgsModels.UsersController;
 using StudyLab.Models.FrontendModels.ResponseModels.AuthController;
 using StudyLab.Models.FrontendModels.ResponseModels.Base;
@@ -82,6 +83,16 @@ namespace StudyLab.Controllers
             return new GetAccountDateResponse(getAccountDateUser, 200);
         }
 
-
+        public static async Task<User?> GetUserFromClaimsAsync(HttpContext context, UserManager<User> userManager)
+        {
+            User? claimUser = await userManager.GetUserAsync(context.User);
+            
+            if (claimUser == null) return null;
+            
+            return await userManager.Users.Include(u => u.Courses)
+                .Include(u => u.WantToTake)
+                .Include(u => u.InLearning)
+                .SingleOrDefaultAsync(u => u.Id == claimUser.Id);
+        }
     }
 }

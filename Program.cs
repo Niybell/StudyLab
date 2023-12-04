@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StudyLab.Models.EntityFramework.Contexts;
+using StudyLab.Models.EntityFramework.Repositories;
+using StudyLab.Models.ServerModels.Courses;
 using StudyLab.Models.ServerModels.User;
+using StudyLab.Services.Implementations;
+using StudyLab.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +15,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSwaggerGen();   
 builder.Services.AddDbContext<AuthDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnectionString")));
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AuthDBContext>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IBaseRepository<Course>, CourseRepository>();
 
 var app = builder.Build();
 
