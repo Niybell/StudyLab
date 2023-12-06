@@ -11,6 +11,7 @@ using StudyLab.Models.FrontendModels.ResponseModels.Base;
 using StudyLab.Models.FrontendModels.ResponseModels.CourseController;
 using StudyLab.Models.ServerModels.Courses;
 using StudyLab.Models.ServerModels.Courses.Lessons;
+using StudyLab.Models.ServerModels.Courses.Lessons.Steps;
 using StudyLab.Models.ServerModels.Courses.Modules;
 using StudyLab.Models.ServerModels.User;
 
@@ -207,7 +208,7 @@ namespace StudyLab.Controllers
             return new GetCourseResponse(course, 200);
         }
         [HttpPost("create-module")]
-        private async Task<TextResponse> CreateModule(string name, int courseId, string description)
+        public async Task<TextResponse> CreateModule(string name, int courseId, string description)
         {
             User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
 
@@ -232,7 +233,7 @@ namespace StudyLab.Controllers
             return new TextResponse("Successfully create module", 200);
         }
         [HttpPost("create-lesson")]
-        private async Task<TextResponse> CreateLesson(string name, string moduleName, int courseId)
+        public async Task<TextResponse> CreateLesson(string name, string moduleName, int courseId)
         {
             User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
 
@@ -251,6 +252,9 @@ namespace StudyLab.Controllers
 
             if (module == null) return new TextResponse("Module with this name is not found", 500);
 
+            if (module.Lessons.SingleOrDefault(l => l.Name == name) != null)
+                return new TextResponse("Lesson with this name is already created", 500);
+
             Lesson lesson = new Lesson(name);
 
             course.Modules.Single(m => m.Name == module.Name).Lessons.Add(lesson);
@@ -258,6 +262,147 @@ namespace StudyLab.Controllers
             await _courseRepository.Update(course);
 
             return new TextResponse("Successfully create lesson", 200);
+        }
+        [HttpPost("create-step")]
+        public async Task<TextResponse> CreateStep(int courseId, string moduleName, string lessonName, StepType type, string htmlCode)
+        {
+            User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
+
+            if (user == null) return new TextResponse("You must be authorized", 500);
+
+            Course? course = await _courseRepository.GetAll()
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Steps)
+                .ThenInclude(s => s.Test)
+                .SingleOrDefaultAsync(c => c.Id == courseId && c.AuthorId == user.Id);
+
+            if (course == null) return new TextResponse("Course with this id don't found", 500);
+
+            Module? module = course.Modules.SingleOrDefault(m => m.Name == moduleName);
+
+            if (course.Modules.SingleOrDefault(m => m.Name == moduleName) == null)
+                return new TextResponse("Module with this name is not found", 500);
+
+            if (module.Lessons.SingleOrDefault(l => l.Name == lessonName) == null)
+                return new TextResponse("Lesson with this id is not found", 500);
+
+            course.Modules
+                .SingleOrDefault(m => m.Name == moduleName).Lessons
+                .SingleOrDefault(l => l.Name == lessonName)
+                .Steps.Add(new Step(type, htmlCode, null));
+
+            await _courseRepository.Update(course);
+
+            return new TextResponse("Successfully create step", 200);
+        }
+        [HttpDelete("delete-module")]
+        public async Task<TextResponse> DeleteModuleAsync(int courseId, string moduleName)
+        {
+            User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
+
+            if (user == null) return new TextResponse("You must be authorized", 500);
+
+            Course? course = await _courseRepository.GetAll()
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Steps)
+                .ThenInclude(s => s.Test)
+                .SingleOrDefaultAsync(c => c.Id == courseId && c.AuthorId == user.Id);
+
+            if (course == null) return new TextResponse("Course with this id don't found", 500);
+
+            Module? module = course.Modules.SingleOrDefault(m => m.Name == moduleName);
+
+            if (course.Modules.SingleOrDefault(m => m.Name == moduleName) == null)
+                return new TextResponse("Module with this name is not found", 500);
+
+            course.Modules.Remove(course.Modules.Single(m => m.Name == moduleName));
+
+            await _courseRepository.Update(course);
+
+            return new TextResponse("Successfully delete module", 200);
+        }
+        [HttpDelete("delete-lesson")]
+        public async Task<TextResponse> DeleteLessonAsync(int courseId, string moduleName, string lessonName)
+        {
+            User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
+
+            if (user == null) return new TextResponse("You must be authorized", 500);
+
+            Course? course = await _courseRepository.GetAll()
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Steps)
+                .ThenInclude(s => s.Test)
+                .SingleOrDefaultAsync(c => c.Id == courseId && c.AuthorId == user.Id);
+
+            if (course == null) return new TextResponse("Course with this id don't found", 500);
+
+            Module? module = course.Modules.SingleOrDefault(m => m.Name == moduleName);
+
+            if (module == null)
+                return new TextResponse("Module with this name is not found", 500);
+
+            Lesson? lesson = module.Lessons.SingleOrDefault(l => l.Name == lessonName);
+
+            if (lesson == null)
+                return new TextResponse("Lesson with this id is not found", 500);
+
+            course.Modules.Single(m => m.Name == moduleName).Lessons.Remove(lesson);
+
+            await _courseRepository.Update(course);
+
+            return new TextResponse("Successfully delete lesson", 200);
+        }
+        [HttpDelete("delete-step")]
+        public async Task<TextResponse> DeleteStepAsync(int courseId, string moduleName, string lessonName, int stepNumber)
+        {
+            User? user = await AuthController.GetUserFromClaimsAsync(HttpContext, _userManager);
+
+            if (user == null) return new TextResponse("You must be authorized", 500);
+
+            Course? course = await _courseRepository.GetAll()
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Steps)
+                .ThenInclude(s => s.Test)
+                .SingleOrDefaultAsync(c => c.Id == courseId && c.AuthorId == user.Id);
+
+            if (course == null) return new TextResponse("Course with this id don't found", 500);
+
+            Module? module = course.Modules.SingleOrDefault(m => m.Name == moduleName);
+
+            if (module == null)
+                return new TextResponse("Module with this name is not found", 500);
+
+            Lesson? lesson = module.Lessons.SingleOrDefault(l => l.Name == lessonName);
+
+            if (lesson == null)
+                return new TextResponse("Lesson with this id is not found", 500);
+
+            Step? step = null;
+
+            try
+            {
+                step = lesson.Steps[stepNumber + 1];
+            }
+            catch
+            {
+                step = null;
+            }
+
+            if (step == null)
+                return new TextResponse("Step with this number is not found", 200);
+
+            course.Modules
+                .Single(m => m.Name == moduleName).Lessons
+                .Single(l => l.Name == lessonName).Steps
+                .Remove(step);
+            
+            await _courseRepository.Update(course);
+
+            return new TextResponse("Successfully delete step", 200);
         }
     }
 }

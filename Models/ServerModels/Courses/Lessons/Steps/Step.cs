@@ -11,7 +11,7 @@ namespace StudyLab.Models.ServerModels.Courses.Lessons.Steps
         {
         }
 
-        public Step(StepType type, string htmlCode, Test test)
+        public Step(StepType type, string htmlCode, Test? test)
         {
             Type = type;
             HtmlCode = htmlCode;
